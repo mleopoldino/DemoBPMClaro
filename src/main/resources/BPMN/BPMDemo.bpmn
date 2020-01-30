@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_18914ow" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.5.0">
+  <bpmn:process id="BPMDemo" name="Processo Demonstração BPM" isExecutable="true" camunda:versionTag="1.0">
+    <bpmn:startEvent id="StartEvent_Id01" name="Iniciar Solicitação" camunda:formKey="embedded:app:forms/SolicitarAprovacaoDemanda.html">
+      <bpmn:documentation>Efetuar a solicitação da demanda.</bpmn:documentation>
+      <bpmn:outgoing>SequenceFlow_Id01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_Id01" sourceRef="StartEvent_Id01" targetRef="ExclusiveGateway_Id01" />
+    <bpmn:userTask id="Task_HTId01" name="Avaliar Solicitação" camunda:formKey="embedded:app:forms/AvaliarSolicitacao.html">
+      <bpmn:documentation>Avaliar manualmente a aprovação da demanda.</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_Id02</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_Id03</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_Id01" name="Valor da Solicitação &#62; 100,00 R$?" default="SequenceFlow_Id02">
+      <bpmn:documentation>Verificar se o valor solicitado é maior que 100,00 R$. </bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_Id01</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_Id02</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_Id05</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_Id02" name="Sim" sourceRef="ExclusiveGateway_Id01" targetRef="Task_HTId01" />
+    <bpmn:endEvent id="EndEvent_Id01" name="Aprovação Automática">
+      <bpmn:documentation>Finalizar solicitação com reprovação automática.</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_Id06</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_Id05" name="Não" sourceRef="ExclusiveGateway_Id01" targetRef="Task_STId01">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${amount&lt;100}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_Id02" name="Aprovar Solicitação?" default="SequenceFlow_Id04">
+      <bpmn:documentation>Verificar se a solicitação foi aprovada manualmente pelo gestor.</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_Id03</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_Id07</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_Id04</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_Id03" sourceRef="Task_HTId01" targetRef="ExclusiveGateway_Id02" />
+    <bpmn:endEvent id="EndEvent_Id03" name="Solicitação Reprovada">
+      <bpmn:documentation>Finalizar solicitação com reprovação manual.</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_Id08</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_Id07" name="Não" sourceRef="ExclusiveGateway_Id02" targetRef="Task_SNId01">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!validate}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_Id04" name="Sim" sourceRef="ExclusiveGateway_Id02" targetRef="EndEvent_Id02" />
+    <bpmn:endEvent id="EndEvent_Id02" name="Solicitação Aprovada">
+      <bpmn:documentation>Finalizar solicitação com aprovação manual.</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_Id04</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_Id06" sourceRef="Task_STId01" targetRef="EndEvent_Id01" />
+    <bpmn:serviceTask id="Task_STId01" name="Efetuar aprovação automática da Solicitação" camunda:class="br.com.mls.bpm.delegate.ProcessApprovalDelegate">
+      <bpmn:documentation>Efetuar o processamento automático da solicitação.</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_Id05</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_Id06</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_Id08" sourceRef="Task_SNId01" targetRef="EndEvent_Id03" />
+    <bpmn:sendTask id="Task_SNId01" name="Notificar reprovação da Solicitação" camunda:class="br.com.mls.bpm.delegate.SentNotificationDelegate">
+      <bpmn:documentation>Enviar notificação sistemica informando a reprovação da solicitação.</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_Id07</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_Id08</bpmn:outgoing>
+    </bpmn:sendTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="BPMDemo">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_Id01" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="152" y="109" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="130" y="152" width="86" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_19z1u9a_di" bpmnElement="SequenceFlow_Id01">
+        <di:waypoint x="188" y="127" />
+        <di:waypoint x="255" y="127" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_0icptcz_di" bpmnElement="Task_HTId01">
+        <dc:Bounds x="380" y="87" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0yusijc_di" bpmnElement="ExclusiveGateway_Id01" isMarkerVisible="true" bioc:stroke="rgb(251, 140, 0)" bioc:fill="rgb(255, 224, 178)">
+        <dc:Bounds x="255" y="102" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="248" y="59" width="63" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1lux4hi_di" bpmnElement="SequenceFlow_Id02">
+        <di:waypoint x="305" y="127" />
+        <di:waypoint x="380" y="127" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="333" y="109" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_0jwvon4_di" bpmnElement="EndEvent_Id01" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="412" y="252" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="403" y="295" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1kp516p_di" bpmnElement="SequenceFlow_Id05">
+        <di:waypoint x="280" y="152" />
+        <di:waypoint x="280" y="230" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="285" y="193" width="21" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0jpzdvt_di" bpmnElement="ExclusiveGateway_Id02" isMarkerVisible="true" bioc:stroke="rgb(251, 140, 0)" bioc:fill="rgb(255, 224, 178)">
+        <dc:Bounds x="555" y="102" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="551" y="72" width="60" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0b9s71k_di" bpmnElement="SequenceFlow_Id03">
+        <di:waypoint x="480" y="127" />
+        <di:waypoint x="555" y="127" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_1ymgu5o_di" bpmnElement="EndEvent_Id03" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
+        <dc:Bounds x="882" y="252" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="873" y="295" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_08g9x39_di" bpmnElement="SequenceFlow_Id07">
+        <di:waypoint x="580" y="152" />
+        <di:waypoint x="580" y="270" />
+        <di:waypoint x="690" y="270" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="585" y="208" width="21" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0x4lts2_di" bpmnElement="SequenceFlow_Id04">
+        <di:waypoint x="605" y="127" />
+        <di:waypoint x="722" y="127" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="654" y="109" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_1qn7ayw_di" bpmnElement="EndEvent_Id02" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="722" y="109" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="713" y="152" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1hqjxr5_di" bpmnElement="SequenceFlow_Id06">
+        <di:waypoint x="330" y="270" />
+        <di:waypoint x="412" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_10dpwgs_di" bpmnElement="Task_STId01">
+        <dc:Bounds x="230" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1nr1dgy_di" bpmnElement="SequenceFlow_Id08">
+        <di:waypoint x="790" y="270" />
+        <di:waypoint x="882" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_09lek8s_di" bpmnElement="Task_SNId01">
+        <dc:Bounds x="690" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
